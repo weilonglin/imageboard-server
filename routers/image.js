@@ -3,10 +3,21 @@ const { Router } = require("express");
 const Image = require("../models").image;
 const router = new Router();
 
-// router.get("/", async (req, res) => {
-//   const images = await image.findAll();
-//   res.send(images);
-// });
+router.get("/images", async (req, res) => {
+  const limit = req.query.limit || 25;
+  const offset = req.query.offset || 0;
+  try {
+    const countImages = await Image.findAndCountAll({
+      limit,
+      offset,
+    }).then((result) => res.send({ images: result.rows, total: result.count }));
+
+    const images = await Image.findAll({ limit, offset });
+    res.send(images);
+  } catch (e) {
+    return e;
+  }
+});
 router.post("/images", async (req, res) => {
   try {
     const { title, url } = req.body;

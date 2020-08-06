@@ -4,8 +4,20 @@ const router = new Router();
 const bcrypt = require("bcrypt");
 
 router.get("/", async (req, res) => {
-  const users = await user.findAll();
-  res.send(users);
+  const limit = req.query.limit || 25;
+  const offset = req.query.offset || 0;
+  try {
+    const countUsers = await user
+      .findAndCountAll({ limit, offset })
+      .then((result) => res.send({ users: result.rows, total: result.count }));
+    const users = await user.findAll({
+      limit,
+      offset,
+    });
+    res.send(users);
+  } catch (e) {
+    return e;
+  }
 });
 
 router.post("/", async (req, res, next) => {
@@ -23,7 +35,7 @@ router.post("/", async (req, res, next) => {
       res.json(newUser);
     }
   } catch (e) {
-    next(e);
+    return e;
   }
 });
 
